@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+openai
+pydantic
+google-generativeai
+sqlalchemy
+psycopg2-binary
+httpx
+python-multipart
+psycopg2-binary
+PyMuPDF
