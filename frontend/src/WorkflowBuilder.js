@@ -43,7 +43,9 @@ function WorkflowBuilder() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadApiKey, setUploadApiKey] = useState('');
-  const [uploadProvider, setUploadProvider] = useState('openai');
+  const [uploadProvider, setUploadProvider] = useState('gemini');
+  const [uploading, setUploading] = useState(false);
+  const [running, setRunning] = useState(false);
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
@@ -68,12 +70,28 @@ function WorkflowBuilder() {
     setNodes(updated);
   };
 
-const runWorkflow = async () => {
-  const queryNode = nodes.find((n) => n.id === '1');
-  const llmNode = nodes.find((n) => n.id === '2');
+  const setOutput = (text) => {
+    setNodes((prev) =>
+      prev.map((node) =>
+        node.id === '3' ? { ...node, data: { ...node.data, response: text } } : node
+      )
+    );
+  };
 
-  const payload = {
-    nodes: [
+  const runWorkflow = async () => {
+    const queryNode = nodes.find((n) => n.id === '1');
+    const llmNode = nodes.find((n) => n.id === '2');
+
+    if (!queryNode?.data.query?.trim()) {
+      alert('Please enter a query.');
+      return;
+    }
+    if (!llmNode?.data.apiKey) {
+      alert('Please enter an LLM API key.');
+      return;
+    }
+
+    const workflowNodes = [
       {
         id: 'llm-node',
         type: 'LLMEngine',
@@ -82,137 +100,19 @@ const runWorkflow = async () => {
           api_key: llmNode.data.apiKey,
         },
       },
-    ],
-    edges: [],
-    query: queryNode.data.query,
-  };
+    ];
 
-  try {
-    const response = await axios.post(`${API_URL}/run_workflow`, payload);
-    const message = response.data?.response || response.data?.error || 'No response';
-    
-    const updated = nodes.map((node) =>
-      node.id === '3'
-        ? { ...node, data: { ...node.data, response: message } }
-        : node
-    );
-    setNodes(updated);
-  } catch (err) {
-    const errorMessage =
-      err.response?.data?.error || err.message || 'Unknown error';
-    const updated = nodes.map((node) =>
-      node.id === '3'
-        ? { ...node, data: { ...node.data, response: `Error: ${errorMessage}` } }
-        : node
-    );
-    setNodes(updated);
-  }
-};
-
-
-
-  const uploadDocument = async () => {
-    if (!uploadFile || !uploadApiKey || !uploadProvider) {
-      alert('Please select file, API key and provider.');
-      return;
+    if (uploadApiKey) {
+      workflowNodes.unshift({
+        id: 'kb-node',
+        type: 'KnowledgeBase',
+        config: {
+          provider: uploadProvider,
+          api_key: uploadApiKey,
+        },
+      });
     }
 
-    const formData = new FormData();
-    formData.append('file', uploadFile);
-    formData.append('api_key', uploadApiKey);
-    formData.append('provider', uploadProvider);
-
-    try {
-      await axios.post(`${API_URL}/upload_document`, formData);
-      alert('Document uploaded.');
-    } catch (err) {
-      alert('Upload failed.');
-    }
-  };
-
-  return (
-    <div style={{ height: '100vh', display: 'flex' }}>
-      <div style={{ width: '75%', height: '100%' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-        >
-          <MiniMap />
-          <Controls />
-          <Background />
-        </ReactFlow>
-      </div>
-
-      <div style={{ width: '45%', padding: 20, backgroundColor: '#f5f5f5', overflowY: 'auto' }}>
-        <h3>User Query</h3>
-        <textarea
-          value={nodes.find((n) => n.id === '1')?.data.query || ''}
-          onChange={handleQueryChange}
-          rows={4}
-          style={{ width: '100%' }}
-        />
-
-        <h3>LLM Config</h3>
-        <select value={nodes.find((n) => n.id === '2')?.data.model} onChange={handleModelChange} style={{ width: '100%', marginBottom: 10 }}>
-              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
-              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-              <option value="gpt-4o-mini">GPT-4o Mini</option>
-        </select>
-
-        <input
-          type="text"
-          placeholder="LLM API Key"
-          value={nodes.find((n) => n.id === '2')?.data.apiKey || ''}
-          onChange={handleApiKeyChange}
-          style={{ width: '100%' }}
-        />
-
-        <h3>Upload Document</h3>
-        <input type="file" onChange={(e) => setUploadFile(e.target.files[0])} />
-        <select value={uploadProvider} onChange={(e) => setUploadProvider(e.target.value)} style={{ width: '100%', marginTop: 5 }}>
-          <option value="openai">OpenAI</option>
-          <option value="gemini">Gemini</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Embedding API Key"
-          value={uploadApiKey}
-          onChange={(e) => setUploadApiKey(e.target.value)}
-          style={{ width: '100%', marginTop: 5 }}
-        />
-        <button onClick={uploadDocument} style={{ marginTop: 10, width: '100%' }}>
-          Upload
-        </button>
-
-        <h3>Run Workflow</h3>
-        <button onClick={runWorkflow} style={{ width: '100%' }}>
-          Run
-        </button>
-
-        <h4>Response</h4>
-        <div
-          style={{
-            whiteSpace: 'pre-wrap',
-            backgroundColor: '#fff',
-            padding: 10,
-            border: '1px solid #ccc',
-            borderRadius: 5,
-            marginTop: 5,
-            height: 200,
-            overflowY: 'auto',
-          }}
-        >
-          {nodes.find((n) => n.id === '3')?.data.response || 'No response yet.'}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default WorkflowBuilder;
+    const payload = {
+      nodes: workflowNodes,
+      edges: [],
