@@ -158,11 +158,11 @@ const runWorkflow = async () => {
 
         <h3>LLM Config</h3>
         <select value={nodes.find((n) => n.id === '2')?.data.model} onChange={handleModelChange} style={{ width: '100%', marginBottom: 10 }}>
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option>
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-            <option value="gpt-4o-mini">GPT-4o Mini</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              <option value="gpt-4o-mini">GPT-4o Mini</option>
         </select>
 
         <input
