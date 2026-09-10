@@ -22,7 +22,7 @@ const initialNodes = [
   {
     id: '2',
     type: 'default',
-    data: { label: 'LLM Model Selection', model: 'gpt-4o-mini', apiKey: '' },
+    data: { label: 'LLM Model Selection', model: 'gemini-3.6-flash', apiKey: '' },
     position: { x: 50, y: 200 },
   },
   {
