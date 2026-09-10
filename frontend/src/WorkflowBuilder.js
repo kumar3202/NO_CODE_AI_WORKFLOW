@@ -10,6 +10,8 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 const initialNodes = [
   {
     id: '1',
