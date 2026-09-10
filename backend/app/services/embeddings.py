@@ -21,7 +21,7 @@ def _openai_embeddings(text: str, api_key: str):
 
 
 def _gemini_embeddings(text: str, api_key: str):
-    url = "https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent"
     payload = {
         "content": {
             "parts": [{"text": text}]
