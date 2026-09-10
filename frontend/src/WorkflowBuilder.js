@@ -88,7 +88,7 @@ const runWorkflow = async () => {
   };
 
   try {
-    const response = await axios.post('http://localhost:8000/run_workflow', payload);
+    const response = await axios.post(`${API_URL}/run_workflow`, payload);
     const message = response.data?.response || response.data?.error || 'No response';
     
     const updated = nodes.map((node) =>
@@ -123,7 +123,7 @@ const runWorkflow = async () => {
     formData.append('provider', uploadProvider);
 
     try {
-      await axios.post('http://localhost:8000/upload_document', formData);
+      await axios.post(`${API_URL}/upload_document`, formData);
       alert('Document uploaded.');
     } catch (err) {
       alert('Upload failed.');
