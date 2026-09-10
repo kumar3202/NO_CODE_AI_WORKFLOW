@@ -9,10 +9,19 @@ app = FastAPI(title="No-Code AI Workflow API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-models.Base.metadata.create_all(bind=engine)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Database init deferred: {e}")
+
 app.include_router(router)
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
