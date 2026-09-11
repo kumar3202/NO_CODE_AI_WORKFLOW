@@ -9,3 +9,4 @@ httpx
 python-multipart
 psycopg2-binary
 PyMuPDF
+chromadb==0.5.23
